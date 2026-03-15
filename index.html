@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a1628">
+  <meta name="description" content="Fiscalizaí — Acompanhe emendas parlamentares com transparência">
+  <title>Fiscalizaí — Emendas Parlamentares</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #06100f;
+      --bg2: #0d1e1b;
+      --bg3: #122820;
+      --surface: #162f2a;
+      --border: #1f4038;
+      --accent: #00e89a;
+      --accent2: #ff5c38;
+      --accent3: #ffd166;
+      --text: #e8f5f2;
+      --text2: #8ab5ac;
+      --text3: #4d7a72;
+      --danger: #ff3b3b;
+      --warn: #ffb703;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-head);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid noise texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,232,154,0.08) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M60 0L0 60M0 0l60 60' stroke='%231f4038' stroke-width='.3'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app { position: relative; z-index: 1; }
+
+    /* ── HEADER ── */
+    header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(6,16,15,0.9);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-icon {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── SEARCH BAR ── */
+    .search-section {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-label {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .input-group label {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input, select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--text3); }
+    select option { background: var(--bg2); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 22px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+      align-self: flex-end;
+    }
+    .btn-primary:hover { background: #00ffaa; transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .stat-pill {
+      padding: 14px 20px;
+      border-right: 1px solid var(--border);
+      min-width: 140px;
+      flex-shrink: 0;
+    }
+
+    .stat-pill .label {
+      font-size: 0.6rem;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-pill .value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-pill .value.warn { color: var(--warn); }
+    .stat-pill .value.danger { color: var(--danger); }
+    .stat-pill .value.neutral { color: var(--text2); }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-bar-label {
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-right: 4px;
+    }
+
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .chip:hover, .chip.active {
+      background: rgba(0,232,154,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .chip-remove {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .chip-remove .x {
+      opacity: 0.6;
+      font-size: 0.8rem;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main { padding: 20px 24px; }
+
+    /* ── TABLE ── */
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .table-title {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .emenda-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      transition: all .2s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .emenda-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .emenda-card:hover { border-color: var(--accent); transform: translateX(2px); }
+    .emenda-card:hover::before { opacity: 1; }
+
+    .emenda-card.saved { border-color: rgba(0,232,154,0.3); }
+    .emenda-card.saved::before { opacity: 0.5; }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-codigo {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      background: rgba(0,232,154,0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .card-autor {
+      font-size: 0.95rem;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .card-tipo {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-mid {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .card-meta {
+      font-size: 0.78rem;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .card-meta .icon { font-size: 0.9rem; }
+
+    .card-valores {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .valor-item { }
+    .valor-item .v-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 3px;
+    }
+    .valor-item .v-value {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .v-value.empenhado { color: var(--accent3); }
+    .v-value.liquidado { color: var(--accent); }
+    .v-value.pago { color: #4ade80; }
+    .v-value.zero { color: var(--text3); }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn-sm {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 5px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--bg3);
+      color: var(--text2);
+      transition: all .15s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-sm.saved-btn { border-color: var(--accent); color: var(--accent); background: rgba(0,232,154,0.08); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      height: 6px;
+      background: var(--bg);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .6s ease;
+    }
+    .progress-bar.emph { background: var(--accent3); }
+    .progress-bar.liq { background: var(--accent); }
+    .progress-bar.pago { background: #4ade80; }
+
+    /* ── EMPTY / LOADING ── */
+    .state-box {
+      text-align: center;
+      padding: 60px 24px;
+      color: var(--text3);
+    }
+    .state-box .emoji { font-size: 3rem; margin-bottom: 16px; display: block; }
+    .state-box p { font-size: 0.9rem; line-height: 1.6; }
+    .state-box strong { color: var(--text2); }
+
+    .loader {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .page-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .page-btn:hover, .page-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,232,154,0.1);
+    }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ── MODAL SAVED ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 12px 18px;
+      border-radius: 10px;
+      z-index: 300;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .3s;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── SAVED VIEW ── */
+    .saved-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--text3);
+      font-size: 0.85rem;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      gap: 0;
+    }
+    .tab {
+      padding: 14px 20px;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all .2s;
+    }
+    .tab:hover { color: var(--text2); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── FUNCAO BADGE ── */
+    .badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid;
+    }
+    .badge-saude { color: #f72585; border-color: #f7258550; background: #f7258510; }
+    .badge-educacao { color: #4cc9f0; border-color: #4cc9f050; background: #4cc9f010; }
+    .badge-assistencia { color: #7209b7; border-color: #7209b750; background: #7209b710; color: #c77dff; }
+    .badge-infraestrutura { color: var(--accent3); border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.05); }
+    .badge-default { color: var(--text2); border-color: var(--border); background: var(--surface); }
+
+    /* ── OFFLINE INDICATOR ── */
+    .offline-bar {
+      display: none;
+      background: var(--danger);
+      color: white;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 6px;
+      letter-spacing: 1px;
+    }
+    .offline-bar.show { display: block; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .stats-bar { display: grid; grid-template-columns: 1fr 1fr; }
+      .stat-pill { border-right: none; border-bottom: 1px solid var(--border); }
+      .search-row { flex-direction: column; }
+      header { padding: 14px 16px; }
+      .main { padding: 16px; }
+      .search-section { padding: 16px; }
+      .filter-bar { padding: 10px 16px; }
+      .tabs { padding: 0 16px; }
+    }
+
+    /* ── RANKING BENEFICIÁRIOS ── */
+    .rank-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .rank-summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .rank-summary-card .rs-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .rank-summary-card .rs-value { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+    .rank-summary-card .rs-value.orange { color: var(--accent3); }
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding: 16px 0 0;
+    }
+    .podium-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      max-width: 180px;
+    }
+    .podium-medal { font-size: 1.6rem; }
+    .podium-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.3;
+      color: var(--text);
+      max-width: 130px;
+    }
+    .podium-cnpj { font-family: var(--font-mono); font-size: 0.58rem; color: var(--text3); text-align: center; }
+    .podium-valor { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; text-align: center; }
+    .podium-block {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: rgba(0,0,0,0.35);
+    }
+    .podium-item.pos-2 .podium-block { height: 60px; background: linear-gradient(135deg,#c0a020,#ffd700); }
+    .podium-item.pos-2 .podium-valor { color: #ffd700; }
+    .podium-item.pos-1 .podium-block { height: 90px; background: linear-gradient(135deg,#888,#e0e0e0); }
+    .podium-item.pos-1 .podium-valor { color: #e0e0e0; }
+    .podium-item.pos-3 .podium-block { height: 48px; background: linear-gradient(135deg,#7c4a10,#cd7f32); }
+    .podium-item.pos-3 .podium-valor { color: #cd7f32; }
+    .podium-item.pos-1 { order: 2; }
+    .podium-item.pos-2 { order: 1; }
+    .podium-item.pos-3 { order: 3; }
+    .rank-list { display: flex; flex-direction: column; gap: 8px; }
+    .rank-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      transition: border-color .18s;
+      animation: fadeUp .3s ease both;
+    }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+    .rank-row:hover { border-color: rgba(0,232,154,0.35); }
+    .rank-num {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text3);
+      text-align: center;
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 5px 0;
+    }
+    .rank-nome { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+    .rank-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .rank-meta span { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); }
+    .rank-meta .uf-tag {
+      color: var(--accent);
+      background: rgba(0,232,154,0.08);
+      border: 1px solid rgba(0,232,154,0.2);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+    .rank-meta .orgao-tag {
+      color: var(--accent3);
+      opacity: 0.8;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .rank-valor-wrap { text-align: right; min-width: 130px; }
+    .rank-valor { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; color: var(--accent3); margin-bottom: 4px; }
+    .rank-pct { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text3); margin-bottom: 4px; }
+    .rank-bar-wrap { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
+    .rank-bar { height: 100%; border-radius: 2px; background: linear-gradient(90deg,var(--accent3),var(--accent)); transition: width .8s cubic-bezier(.4,0,.2,1); }
+    .rank-count { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text3); margin-top: 3px; }
+    .fase-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+    .fase-chip {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text3);
+      transition: all .15s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .fase-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .fase-chip.active { background: rgba(0,232,154,0.12); border-color: var(--accent); color: var(--accent); }
+    .ranking-footer { text-align: center; padding: 20px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text3); }
+    .rank-top50-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      .podium { gap: 6px; }
+      .podium-name { font-size: 0.62rem; max-width: 90px; }
+      .rank-row { grid-template-columns: 32px 1fr auto; gap: 8px; padding: 10px 12px; }
+      .rank-valor-wrap { min-width: 90px; }
+      .rank-valor { font-size: 0.78rem; }
+    }
+
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="offline-bar" id="offlineBar">⚡ MODO OFFLINE — Exibindo dados salvos localmente</div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🔍</div>
+      <div class="logo-text">Fiscaliz<span>aí</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="btnSaved" title="Emendas salvas">⭐</button>
+      <button class="btn-icon" id="btnInfo" title="Sobre">ℹ</button>
+    </div>
+  </header>
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-label">🔎 Consultar Emendas</div>
+    <div class="search-row">
+      <div class="input-group">
+        <label>Código do Autor (parlamentar)</label>
+        <input type="text" id="inputAutor" placeholder="Ex: 4028" value="">
+      </div>
+      <div class="input-group" style="max-width:110px">
+        <label>Ano início</label>
+        <input type="number" id="inputAnoInicio" value="2025" min="2010" max="2030">
+      </div>
+      <div class="input-group" style="max-width:110px">
+        <label>Ano fim</label>
+        <input type="number" id="inputAnoFim" value="2026" min="2010" max="2030">
+      </div>
+      <div class="input-group" style="max-width:160px">
+        <label>Função</label>
+        <select id="selectFuncao">
+          <option value="">Todas</option>
+          <option value="08">Assistência Social</option>
+          <option value="10">Saúde</option>
+          <option value="12">Educação</option>
+          <option value="15">Urbanismo</option>
+          <option value="26">Transporte</option>
+          <option value="04">Administração</option>
+          <option value="20">Agricultura</option>
+          <option value="22">Indústria</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="btnBuscar">Buscar</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-pill">
+      <div class="label">Total encontrado</div>
+      <div class="value neutral" id="statTotal">—</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Empenhado total</div>
+      <div class="value" id="statEmpenhado">—</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Pago total</div>
+      <div class="value" id="statPago">—</div>
+    </div>
+    <div class="stat-pill">
+      <div class="label">Salvas localmente</div>
+      <div class="value neutral" id="statSalvas">0</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tabResultados" onclick="switchTab('resultados')">Resultados</div>
+    <div class="tab" id="tabSalvas" onclick="switchTab('salvas')">⭐ Salvas</div>
+    <div class="tab" id="tabRanking" onclick="switchTab('ranking')">🏆 Ranking</div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-bar-label">Filtro rápido:</span>
+    <span class="chip" onclick="filterChip(this, 'empenhado')">Com valor empenhado</span>
+    <span class="chip" onclick="filterChip(this, 'pago')">Com valor pago</span>
+    <span class="chip" onclick="filterChip(this, 'semPago')">Sem pagamento</span>
+    <span class="chip" onclick="filterChip(this, 'ceara')">Ceará</span>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div id="viewResultados">
+      <div class="table-header">
+        <span class="table-title" id="tableTitle">Aguardando busca...</span>
+        <div class="table-actions">
+          <button class="btn-outline" id="btnExportar" onclick="exportarCSV()">↓ CSV</button>
+          <button class="btn-outline" onclick="salvarTodos()">⭐ Salvar todos</button>
+        </div>
+      </div>
+      <div class="card-list" id="cardList">
+        <div class="state-box">
+          <span class="emoji">🏛️</span>
+          <p><strong>Consulte emendas parlamentares</strong><br>
+          Digite o código do autor (número do parlamentar) e clique em Buscar<br>
+          para visualizar os gastos com emendas do orçamento federal.</p>
+        </div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <div id="viewSalvas" style="display:none">
+      <div class="table-header">
+        <span class="table-title">Emendas salvas localmente</span>
+        <div class="table-actions">
+          <button class="btn-outline" onclick="limparSalvas()">🗑 Limpar todas</button>
+        </div>
+      </div>
+      <div class="card-list" id="savedList">
+        <div class="saved-empty">Nenhuma emenda salva ainda. Use o botão ⭐ nos resultados.</div>
+      </div>
+    </div>
+
+    <div id="viewRanking" style="display:none">
+      <!-- Search form ranking -->
+      <div class="search-section" style="background:rgba(0,0,0,0.15)">
+        <div class="search-label">🏆 Ranking de Beneficiários — Quem recebeu mais recursos federais</div>
+        <div class="search-row">
+          <div class="input-group" style="max-width:130px">
+            <label>Data início</label>
+            <input type="date" id="rankDataInicio" value="2026-03-01">
+          </div>
+          <div class="input-group" style="max-width:130px">
+            <label>Data fim</label>
+            <input type="date" id="rankDataFim" value="2026-03-15">
+          </div>
+          <div class="input-group" style="max-width:200px">
+            <label>Órgão superior (opcional)</label>
+            <input type="text" id="rankOrgao" placeholder="Ex: Ministério da Saúde">
+          </div>
+          <div class="input-group" style="max-width:160px">
+            <label>Fase da despesa</label>
+            <select id="rankFase">
+              <option value="1">Empenho</option>
+              <option value="2">Liquidação</option>
+              <option value="3">Pagamento</option>
+            </select>
+          </div>
+          <div class="input-group" style="max-width:120px">
+            <label>Top N</label>
+            <select id="rankTopN">
+              <option value="10">Top 10</option>
+              <option value="20">Top 20</option>
+              <option value="50">Top 50</option>
+            </select>
+          </div>
+          <button class="btn-primary" id="btnRanking">Gerar Ranking</button>
+        </div>
+      </div>
+
+      <div class="main">
+        <div id="rankingContent">
+          <div class="state-box">
+            <span class="emoji">🏆</span>
+            <p><strong>Ranking de Beneficiários</strong><br>
+            Descubra quem recebeu mais recursos do orçamento federal.<br>
+            Selecione o período e a fase de despesa e clique em Gerar Ranking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- INFO MODAL -->
+<div class="modal-overlay" id="infoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Sobre o Fiscalizaí</div>
+      <button class="btn-icon" onclick="closeModal('infoModal')">✕</button>
+    </div>
+    <p style="color:var(--text2);font-size:0.85rem;line-height:1.8">
+      O <strong style="color:var(--accent)">Fiscalizaí</strong> é um PWA (Progressive Web App) que facilita o acompanhamento
+      de emendas parlamentares do orçamento federal brasileiro.<br><br>
+      Os dados são obtidos diretamente do <strong style="color:var(--text)">Portal da Transparência do Governo Federal</strong>
+      via API pública, sem nenhum intermediário.<br><br>
+      <strong style="color:var(--accent3)">Funcionalidades:</strong><br>
+      • Busca por parlamentar, período e função<br>
+      • Filtros rápidos por situação de pagamento<br>
+      • Armazenamento local das emendas de interesse<br>
+      • Exportação em CSV<br>
+      • Funciona offline com dados salvos<br><br>
+      <span style="color:var(--text3);font-family:var(--font-mono);font-size:0.7rem">
+        Fonte: portaldatransparencia.gov.br<br>
+        v1.0 — Dados públicos do Portal da Transparência
+      </span>
+    </p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  FISCALIZAÍ — PWA de Emendas Parlamentares
+//  Fonte: Portal da Transparência (API pública)
+// ═══════════════════════════════════════════════
+
+const API_BASE = 'https://portaldatransparencia.gov.br/emendas/consulta/resultado';
+const COLS = 'linkDetalhamento,ano,tipoEmenda,autor,numeroEmenda,possuiApoiadorSolicitante,localidadeDoGasto,funcao,subfuncao,programa,acao,planoOrcamentario,codigoEmenda,valorEmpenhado,valorLiquidado,valorPago,valorRestoInscrito,valorRestoCancelado,valorRestoPago';
+
+let allData = [];
+let filteredData = [];
+let currentPage = 0;
+const PAGE_SIZE = 10;
+let totalRecords = 0;
+let activeChips = new Set();
+let currentView = 'resultados';
+
+// ── IndexedDB ──
+let db;
+function initDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('FiscalizaIDB', 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('emendas')) {
+        d.createObjectStore('emendas', { keyPath: 'codigoEmenda' });
+      }
+      if (!d.objectStoreNames.contains('buscas')) {
+        d.createObjectStore('buscas', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbSave(store, data) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).put(data).onsuccess = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+function dbDelete(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key).onsuccess = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+function dbGetAll(store) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).getAll();
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+// ── API ──
+async function fetchEmendas(autor, anoInicio, anoFim, funcao, offset = 0) {
+  const params = new URLSearchParams({
+    paginacaoSimples: 'true',
+    tamanhoPagina: PAGE_SIZE,
+    offset,
+    direcaoOrdenacao: 'desc',
+    colunaOrdenacao: 'valorEmpenhado',
+    de: anoInicio,
+    ate: anoFim,
+    colunasSelecionadas: COLS,
+    _: Date.now()
+  });
+  if (autor) params.set('autorEmenda', autor);
+  if (funcao) params.set('funcao', funcao);
+
+  const url = `${API_BASE}?${params}`;
+
+  // Tenta CORS direto
+  try {
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (r.ok) return await r.json();
+  } catch {}
+
+  // Fallback: proxy CORS
+  try {
+    const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const r = await fetch(proxy);
+    if (r.ok) return await r.json();
+  } catch {}
+
+  throw new Error('Não foi possível acessar a API do Portal da Transparência. Verifique sua conexão.');
+}
+
+// ── FORMAT ──
+function parseValor(s) {
+  if (!s || s === '0,00') return 0;
+  return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function formatBRL(n) {
+  if (n === 0) return 'R$ 0';
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+}
+
+function funcaoBadge(funcao) {
+  if (!funcao) return '';
+  const f = funcao.toLowerCase();
+  let cls = 'badge-default', label = funcao;
+  if (f.includes('saúde') || f.includes('saude')) { cls = 'badge-saude'; label = '🏥 ' + funcao; }
+  else if (f.includes('educa')) { cls = 'badge-educacao'; label = '📚 ' + funcao; }
+  else if (f.includes('assist')) { cls = 'badge-assistencia'; label = '🤝 ' + funcao; }
+  else if (f.includes('urban') || f.includes('infra') || f.includes('transport')) { cls = 'badge-infraestrutura'; label = '🏗 ' + funcao; }
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function tipoShort(tipo) {
+  if (!tipo) return tipo;
+  return tipo.replace('Emenda Individual - ', '').replace('Emenda de Bancada - ', 'Bancada — ')
+    .replace('Emenda de Comissão - ', 'Comissão — ');
+}
+
+// ── RENDER CARD ──
+async function renderCard(item, savedKeys) {
+  const emp = parseValor(item.valorEmpenhado);
+  const liq = parseValor(item.valorLiquidado);
+  const pago = parseValor(item.valorPago);
+  const maxVal = emp || 1;
+  const isSaved = savedKeys.has(item.codigoEmenda);
+
+  const pctLiq = Math.min(100, (liq / maxVal) * 100);
+  const pctPago = Math.min(100, (pago / maxVal) * 100);
+
+  return `
+  <div class="emenda-card ${isSaved ? 'saved' : ''}" data-codigo="${item.codigoEmenda}">
+    <div class="card-top">
+      <div>
+        <span class="card-codigo">${item.codigoEmenda}</span>
+        <div class="card-autor" style="margin-top:6px">${item.autor || 'Autor não informado'}</div>
+        <div class="card-tipo" style="margin-top:4px">${tipoShort(item.tipoEmenda)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text3)">${item.ano}</div>
+        <div style="margin-top:4px">${funcaoBadge(item.funcao)}</div>
+      </div>
+    </div>
+    <div class="card-mid">
+      ${item.localidadeDoGasto ? `<div class="card-meta"><span class="icon">📍</span> ${item.localidadeDoGasto}</div>` : ''}
+      ${item.subfuncao ? `<div class="card-meta"><span class="icon">🏷</span> ${item.subfuncao}</div>` : ''}
+    </div>
+    ${item.acao ? `<div style="font-size:0.72rem;color:var(--text3);margin-bottom:10px;line-height:1.5">${item.acao}</div>` : ''}
+    <div class="card-valores">
+      <div class="valor-item">
+        <div class="v-label">Empenhado</div>
+        <div class="v-value ${emp > 0 ? 'empenhado' : 'zero'}">${emp > 0 ? formatBRL(emp) : '—'}</div>
+      </div>
+      <div class="valor-item">
+        <div class="v-label">Liquidado</div>
+        <div class="v-value ${liq > 0 ? 'liquidado' : 'zero'}">${liq > 0 ? formatBRL(liq) : '—'}</div>
+      </div>
+      <div class="valor-item">
+        <div class="v-label">Pago</div>
+        <div class="v-value ${pago > 0 ? 'pago' : 'zero'}">${pago > 0 ? formatBRL(pago) : '—'}</div>
+      </div>
+      <div class="valor-item">
+        <div class="v-label">Resto Pago</div>
+        <div class="v-value ${parseValor(item.valorRestoPago) > 0 ? 'pago' : 'zero'}">${parseValor(item.valorRestoPago) > 0 ? formatBRL(parseValor(item.valorRestoPago)) : '—'}</div>
+      </div>
+    </div>
+    ${emp > 0 ? `
+    <div style="margin-top:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3)">EXECUÇÃO</span>
+        <span style="font-family:var(--font-mono);font-size:0.6rem;color:var(--text3)">${pago > 0 ? Math.round((pago/emp)*100)+'% pago' : liq > 0 ? Math.round((liq/emp)*100)+'% liq.' : '0% pago'}</span>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar emph" style="width:100%"></div>
+      </div>
+      <div class="progress-wrap" style="margin-top:2px">
+        <div class="progress-bar liq" style="width:${pctLiq}%"></div>
+      </div>
+      <div class="progress-wrap" style="margin-top:2px">
+        <div class="progress-bar pago" style="width:${pctPago}%"></div>
+      </div>
+    </div>` : ''}
+    <div class="card-actions">
+      <button class="btn-sm ${isSaved ? 'saved-btn' : ''}" onclick="toggleSave('${item.codigoEmenda}')">
+        ${isSaved ? '⭐ Salva' : '☆ Salvar'}
+      </button>
+      <a href="https://portaldatransparencia.gov.br/emendas/consulta${item.linkDetalhamento}" 
+         target="_blank" class="btn-sm" style="text-decoration:none">↗ Portal</a>
+    </div>
+  </div>`;
+}
+
+// ── RENDER LIST ──
+async function renderList(data, containerId) {
+  const container = document.getElementById(containerId);
+  if (!data || data.length === 0) {
+    container.innerHTML = `<div class="state-box"><span class="emoji">🔍</span><p>Nenhuma emenda encontrada com os filtros aplicados.</p></div>`;
+    return;
+  }
+  const saved = await dbGetAll('emendas');
+  const savedKeys = new Set(saved.map(s => s.codigoEmenda));
+  const html = await Promise.all(data.map(item => renderCard(item, savedKeys)));
+  container.innerHTML = html.join('');
+  updateSavedCount();
+}
+
+// ── APPLY LOCAL FILTERS ──
+function applyFilters() {
+  filteredData = [...allData];
+  if (activeChips.has('empenhado')) filteredData = filteredData.filter(i => parseValor(i.valorEmpenhado) > 0);
+  if (activeChips.has('pago')) filteredData = filteredData.filter(i => parseValor(i.valorPago) > 0);
+  if (activeChips.has('semPago')) filteredData = filteredData.filter(i => parseValor(i.valorPago) === 0);
+  if (activeChips.has('ceara')) filteredData = filteredData.filter(i => (i.localidadeDoGasto || '').toUpperCase().includes('CEARÁ') || (i.localidadeDoGasto || '').toUpperCase().includes('CEARA'));
+  renderList(filteredData, 'cardList');
+  updateStats(filteredData, totalRecords);
+}
+
+function filterChip(el, key) {
+  if (activeChips.has(key)) {
+    activeChips.delete(key);
+    el.classList.remove('active');
+  } else {
+    activeChips.add(key);
+    el.classList.add('active');
+  }
+  applyFilters();
+}
+
+// ── STATS ──
+function updateStats(data, total) {
+  document.getElementById('statTotal').textContent = total.toLocaleString('pt-BR');
+  const emp = data.reduce((a, i) => a + parseValor(i.valorEmpenhado), 0);
+  const pago = data.reduce((a, i) => a + parseValor(i.valorPago), 0);
+  document.getElementById('statEmpenhado').textContent = formatBRL(emp);
+  document.getElementById('statPago').textContent = formatBRL(pago);
+  updateSavedCount();
+}
+
+async function updateSavedCount() {
+  const saved = await dbGetAll('emendas');
+  document.getElementById('statSalvas').textContent = saved.length;
+}
+
+// ── PAGINATION ──
+function renderPagination(total, page) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (pages <= 1) { pg.innerHTML = ''; return; }
+  let html = '';
+  html += `<button class="page-btn" onclick="goPage(${page - 1})" ${page === 0 ? 'disabled' : ''}>‹</button>`;
+  const start = Math.max(0, page - 2);
+  const end = Math.min(pages - 1, page + 2);
+  if (start > 0) html += `<button class="page-btn" onclick="goPage(0)">1</button>`;
+  if (start > 1) html += `<span class="page-btn" style="cursor:default;opacity:.3">…</span>`;
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="goPage(${i})">${i + 1}</button>`;
+  }
+  if (end < pages - 2) html += `<span class="page-btn" style="cursor:default;opacity:.3">…</span>`;
+  if (end < pages - 1) html += `<button class="page-btn" onclick="goPage(${pages - 1})">${pages}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${page + 1})" ${page >= pages - 1 ? 'disabled' : ''}>›</button>`;
+  pg.innerHTML = html;
+}
+
+async function goPage(page) {
+  if (page < 0) return;
+  currentPage = page;
+  await doSearch(page * PAGE_SIZE);
+}
+
+// ── MAIN SEARCH ──
+async function doSearch(offset = 0) {
+  const autor = document.getElementById('inputAutor').value.trim();
+  const anoInicio = document.getElementById('inputAnoInicio').value;
+  const anoFim = document.getElementById('inputAnoFim').value;
+  const funcao = document.getElementById('selectFuncao').value;
+
+  const btn = document.getElementById('btnBuscar');
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  document.getElementById('cardList').innerHTML = `<div class="state-box"><div class="loader"></div><p style="margin-top:16px">Consultando o Portal da Transparência...</p></div>`;
+  document.getElementById('pagination').innerHTML = '';
+
+  try {
+    const json = await fetchEmendas(autor, anoInicio, anoFim, funcao, offset);
+    allData = json.data || [];
+    totalRecords = json.recordsFiltered || json.recordsTotal || allData.length;
+    filteredData = [...allData];
+    applyFilters();
+    renderPagination(totalRecords, currentPage);
+    document.getElementById('tableTitle').textContent =
+      `${totalRecords.toLocaleString('pt-BR')} emenda${totalRecords !== 1 ? 's' : ''} encontrada${totalRecords !== 1 ? 's' : ''}`;
+    showToast(`✓ ${allData.length} registros carregados`);
+  } catch (e) {
+    document.getElementById('cardList').innerHTML = `<div class="state-box"><span class="emoji">⚠️</span><p><strong>Erro ao consultar a API</strong><br>${e.message}<br><br>Tente novamente ou verifique sua conexão.<br>Os dados salvos localmente ainda estão disponíveis na aba ⭐ Salvas.</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Buscar';
+  }
+}
+
+// ── SAVE / UNSAVE ──
+async function toggleSave(codigo) {
+  const existing = await dbGet('emendas', codigo);
+  if (existing) {
+    await dbDelete('emendas', codigo);
+    showToast('☆ Emenda removida das salvas');
+  } else {
+    const item = allData.find(i => i.codigoEmenda === codigo)
+      || (await dbGetAll('emendas')).find(i => i.codigoEmenda === codigo);
+    if (item) {
+      await dbSave('emendas', item);
+      showToast('⭐ Emenda salva com sucesso!');
+    }
+  }
+  if (currentView === 'resultados') applyFilters();
+  else renderSalvas();
+  updateSavedCount();
+}
+
+async function salvarTodos() {
+  const data = filteredData.length ? filteredData : allData;
+  if (!data.length) { showToast('Nenhum dado para salvar'); return; }
+  for (const item of data) await dbSave('emendas', item);
+  showToast(`⭐ ${data.length} emendas salvas!`);
+  updateSavedCount();
+}
+
+async function limparSalvas() {
+  if (!confirm('Remover todas as emendas salvas?')) return;
+  const all = await dbGetAll('emendas');
+  for (const item of all) await dbDelete('emendas', item.codigoEmenda);
+  renderSalvas();
+  updateSavedCount();
+  showToast('🗑 Salvas limpas');
+}
+
+async function renderSalvas() {
+  const saved = await dbGetAll('emendas');
+  const savedKeys = new Set(saved.map(s => s.codigoEmenda));
+  const container = document.getElementById('savedList');
+  if (!saved.length) {
+    container.innerHTML = `<div class="saved-empty">Nenhuma emenda salva ainda.<br>Use o botão ⭐ nos resultados de busca.</div>`;
+    return;
+  }
+  const html = await Promise.all(saved.map(item => renderCard(item, savedKeys)));
+  container.innerHTML = html.join('');
+}
+
+// ── EXPORT CSV ──
+function exportarCSV() {
+  const data = filteredData.length ? filteredData : allData;
+  if (!data.length) { showToast('Nenhum dado para exportar'); return; }
+  const headers = ['Código','Ano','Tipo','Autor','Nº Emenda','UF/Localidade','Função','Subfunção','Ação','Empenhado','Liquidado','Pago','Resto Inscrito','Resto Pago'];
+  const rows = data.map(i => [
+    i.codigoEmenda, i.ano, i.tipoEmenda, i.autor, i.numeroEmenda,
+    i.localidadeDoGasto, i.funcao, i.subfuncao, i.acao,
+    i.valorEmpenhado, i.valorLiquidado, i.valorPago, i.valorRestoInscrito, i.valorRestoPago
+  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `emendas_${Date.now()}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('↓ CSV exportado!');
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  currentView = tab;
+  document.getElementById('viewResultados').style.display = tab === 'resultados' ? '' : 'none';
+  document.getElementById('viewSalvas').style.display = tab === 'salvas' ? '' : 'none';
+  document.getElementById('viewRanking').style.display = tab === 'ranking' ? '' : 'none';
+  document.getElementById('filterBar').style.display = tab === 'resultados' ? '' : 'none';
+  document.getElementById('tabResultados').classList.toggle('active', tab === 'resultados');
+  document.getElementById('tabSalvas').classList.toggle('active', tab === 'salvas');
+  document.getElementById('tabRanking').classList.toggle('active', tab === 'ranking');
+  if (tab === 'salvas') renderSalvas();
+}
+
+// ── MODAL ──
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── TOAST ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+async function init() {
+  await initDB();
+  updateSavedCount();
+
+  document.getElementById('btnBuscar').addEventListener('click', () => {
+    currentPage = 0;
+    activeChips.clear();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    doSearch(0);
+  });
+
+  document.getElementById('inputAutor').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btnBuscar').click();
+  });
+
+  document.getElementById('btnSaved').addEventListener('click', () => switchTab('salvas'));
+  document.getElementById('btnInfo').addEventListener('click', () => document.getElementById('infoModal').classList.add('open'));
+  document.getElementById('infoModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal('infoModal'); });
+
+  document.getElementById('btnRanking').addEventListener('click', gerarRanking);
+  document.getElementById('rankDataInicio').addEventListener('keydown', e => { if (e.key === 'Enter') gerarRanking(); });
+
+  // Offline detection
+  window.addEventListener('offline', () => document.getElementById('offlineBar').classList.add('show'));
+  window.addEventListener('online', () => document.getElementById('offlineBar').classList.remove('show'));
+  if (!navigator.onLine) document.getElementById('offlineBar').classList.add('show');
+}
+
+init();
+
+
+// ══════════════════════════════════════════════
+//  RANKING BENEFICIÁRIOS
+//  Endpoint: /despesas/favorecido/resultado
+// ══════════════════════════════════════════════
+
+const API_DESPESAS = 'https://portaldatransparencia.gov.br/despesas/favorecido/resultado';
+const COLS_DESP = 'data,documentoResumido,localizadorGasto,fase,especie,favorecido,ufFavorecido,valor,ug,uo,orgao,orgaoSuperior,grupo,elemento,modalidade,planoOrcamentario,autor,subTitulo,funcao,subfuncao,programa,acao';
+
+const FASE_LABEL = { '1': 'Empenho', '2': 'Liquidação', '3': 'Pagamento' };
+
+function formatDate(d) {
+  // YYYY-MM-DD -> DD/MM/YYYY
+  const [y, m, dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+function parseValorBR(s) {
+  if (!s) return 0;
+  return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+}
+
+async function fetchDespesasPage(dataInicio, dataFim, fase, offset) {
+  const params = new URLSearchParams({
+    paginacaoSimples: 'true',
+    tamanhoPagina: 100,
+    offset,
+    direcaoOrdenacao: 'desc',
+    colunaOrdenacao: 'valor',
+    colunasSelecionadas: COLS_DESP,
+    de: formatDate(dataInicio),
+    ate: formatDate(dataFim),
+    faseDespesa: fase,
+    _: Date.now()
+  });
+
+  const url = `${API_DESPESAS}?${params}`;
+  try {
+    const r = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+    if (r.ok) return await r.json();
+  } catch {}
+  try {
+    const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+    const r = await fetch(proxy);
+    if (r.ok) return await r.json();
+  } catch {}
+  throw new Error('Não foi possível acessar a API de despesas.');
+}
+
+async function gerarRanking() {
+  const dataInicio = document.getElementById('rankDataInicio').value;
+  const dataFim = document.getElementById('rankDataFim').value;
+  const fase = document.getElementById('rankFase').value;
+  const topN = parseInt(document.getElementById('rankTopN').value);
+  const orgaoFiltro = document.getElementById('rankOrgao').value.trim().toLowerCase();
+  const btn = document.getElementById('btnRanking');
+  const container = document.getElementById('rankingContent');
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  container.innerHTML = `<div class="state-box"><div class="loader"></div><p style="margin-top:16px">Coletando dados de despesas...<br><span style="font-size:0.75rem;color:var(--text3)">Buscando múltiplas páginas para agregar favorecidos</span></p></div>`;
+
+  try {
+    // Busca as primeiras páginas (até 500 registros para ranking)
+    const allItems = [];
+    let offset = 0;
+    const MAX_PAGES = 5;
+    let page = 0;
+    let total = null;
+
+    while (page < MAX_PAGES) {
+      const json = await fetchDespesasPage(dataInicio, dataFim, fase, offset);
+      const items = json.data || [];
+      if (!items.length) break;
+      allItems.push(...items);
+      if (total === null) {
+        total = json.recordsFiltered;
+        if (total > 9000000000000) total = null; // fallback: API retorna Long.MAX_VALUE quando não sabe
+      }
+      if (items.length < 100) break;
+      offset += 100;
+      page++;
+    }
+
+    // Filtra por órgão se informado
+    const filtered = orgaoFiltro
+      ? allItems.filter(i => (i.orgaoSuperior || '').toLowerCase().includes(orgaoFiltro) || (i.orgao || '').toLowerCase().includes(orgaoFiltro))
+      : allItems;
+
+    // Agrega por favorecido (CNPJ/código)
+    const map = {};
+    for (const item of filtered) {
+      const key = item.codigoFavorecido || item.favorecido || 'N/A';
+      const nome = item.nomeFavorecido || (item.favorecido || '').split(' - ').slice(1).join(' - ') || item.favorecido || 'N/A';
+      const cnpj = item.codigoFavorecido || '';
+      const uf = item.ufFavorecido || '—';
+      const val = parseValorBR(item.valor);
+      if (!map[key]) {
+        map[key] = { nome, cnpj, uf, total: 0, count: 0, orgaos: new Set(), funcoes: new Set() };
+      }
+      map[key].total += val;
+      map[key].count += 1;
+      if (item.orgaoSuperior) map[key].orgaos.add(item.orgaoSuperior);
+      if (item.funcao) map[key].funcoes.add(item.funcao.split(' - ').slice(1).join(' - ') || item.funcao);
+    }
+
+    // Ordena
+    const ranking = Object.entries(map)
+      .map(([k, v]) => ({ ...v, orgaos: [...v.orgaos], funcoes: [...v.funcoes] }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, topN);
+
+    if (!ranking.length) {
+      container.innerHTML = `<div class="state-box"><span class="emoji">🔍</span><p>Nenhum dado encontrado para os filtros selecionados.</p></div>`;
+      return;
+    }
+
+    const grandTotal = ranking.reduce((s, r) => s + r.total, 0);
+    const totalItems = filtered.length;
+    const faseLabel = FASE_LABEL[fase] || fase;
+
+    // HTML do ranking
+    let html = '';
+
+    // Summary
+    html += `<div class="rank-summary">
+      <div class="rank-summary-card">
+        <div class="rs-label">Total no período</div>
+        <div class="rs-value orange">${formatBRL(grandTotal)}</div>
+      </div>
+      <div class="rank-summary-card">
+        <div class="rs-label">Registros analisados</div>
+        <div class="rs-value">${totalItems.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="rank-summary-card">
+        <div class="rs-label">Favorecidos únicos</div>
+        <div class="rs-value">${Object.keys(map).length.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="rank-summary-card">
+        <div class="rs-label">Fase</div>
+        <div class="rs-value" style="color:var(--text2)">${faseLabel}</div>
+      </div>
+    </div>`;
+
+    // Filtros de fase visual
+    html += `<div class="fase-tabs">
+      <span class="fase-chip ${fase==='1'?'active':''}" onclick="document.getElementById('rankFase').value='1';gerarRanking()">Empenho</span>
+      <span class="fase-chip ${fase==='2'?'active':''}" onclick="document.getElementById('rankFase').value='2';gerarRanking()">Liquidação</span>
+      <span class="fase-chip ${fase==='3'?'active':''}" onclick="document.getElementById('rankFase').value='3';gerarRanking()">Pagamento</span>
+    </div>`;
+
+    // Pódio top 3
+    if (ranking.length >= 3) {
+      const medals = ['🥇','🥈','🥉'];
+      // Ordem visual: 2º, 1º, 3º
+      const podiumOrder = [ranking[1], ranking[0], ranking[2]];
+      const posClasses = ['pos-2','pos-1','pos-3'];
+      html += `<div class="podium">`;
+      podiumOrder.forEach((item, i) => {
+        const posNum = i === 0 ? 2 : i === 1 ? 1 : 3;
+        html += `<div class="podium-item pos-${posNum}">
+          <div class="podium-medal">${medals[posNum-1]}</div>
+          <div class="podium-name">${escHtml(item.nome)}</div>
+          <div class="podium-cnpj">${item.cnpj}</div>
+          <div class="podium-valor">${formatBRL(item.total)}</div>
+          <div class="podium-block">${posNum}º</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Lista completa
+    html += `<div class="rank-top50-label">▼ ranking completo — top ${topN} por valor ${faseLabel.toLowerCase()}</div>`;
+    html += `<div class="rank-list">`;
+    const maxVal = ranking[0].total;
+    ranking.forEach((item, i) => {
+      const pct = maxVal > 0 ? ((item.total / maxVal) * 100).toFixed(1) : 0;
+      const pctTotal = grandTotal > 0 ? ((item.total / grandTotal) * 100).toFixed(1) : 0;
+      const delay = Math.min(i * 40, 400);
+      html += `<div class="rank-row" style="animation-delay:${delay}ms">
+        <div class="rank-num">${i + 1}</div>
+        <div class="rank-info">
+          <div class="rank-nome">${escHtml(item.nome)}</div>
+          <div class="rank-meta">
+            <span class="uf-tag">${item.uf}</span>
+            <span>${item.cnpj}</span>
+            ${item.orgaos[0] ? `<span class="orgao-tag">📦 ${escHtml(item.orgaos[0])}${item.orgaos.length > 1 ? ` +${item.orgaos.length-1}` : ''}</span>` : ''}
+          </div>
+          ${item.funcoes.length ? `<div class="rank-meta" style="margin-top:4px"><span>🏷 ${escHtml(item.funcoes.slice(0,2).join(', '))}${item.funcoes.length>2?' ...':''}</span></div>` : ''}
+        </div>
+        <div class="rank-valor-wrap">
+          <div class="rank-valor">${formatBRL(item.total)}</div>
+          <div class="rank-pct">${pctTotal}% do total</div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
+          <div class="rank-count">${item.count} registro${item.count !== 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    html += `<div class="ranking-footer">
+      Dados: Portal da Transparência · ${faseLabel} · ${formatDate(dataInicio)} a ${formatDate(dataFim)}<br>
+      Baseado nos ${totalItems} registros coletados · Valores em R$
+      <br><br>
+      <button class="btn-outline" onclick="exportarRankingCSV(window._lastRanking, '${faseLabel}')">↓ Exportar CSV</button>
+    </div>`;
+
+    window._lastRanking = ranking;
+    container.innerHTML = html;
+    showToast(`🏆 Ranking gerado com ${ranking.length} favorecidos`);
+
+  } catch(e) {
+    container.innerHTML = `<div class="state-box"><span class="emoji">⚠️</span><p><strong>Erro ao gerar ranking</strong><br>${e.message}</p></div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Gerar Ranking';
+  }
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function exportarRankingCSV(ranking, faseLabel) {
+  if (!ranking || !ranking.length) return;
+  const headers = ['Posição','Nome','CNPJ/Código','UF','Total Recebido','% do Total','Registros','Órgãos','Funções'];
+  const grandTotal = ranking.reduce((s, r) => s + r.total, 0);
+  const rows = ranking.map((item, i) => [
+    i+1,
+    item.nome,
+    item.cnpj,
+    item.uf,
+    item.total.toFixed(2).replace('.',','),
+    grandTotal > 0 ? ((item.total/grandTotal)*100).toFixed(2).replace('.',',') : '0',
+    item.count,
+    item.orgaos.join('; '),
+    item.funcoes.join('; ')
+  ].map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `ranking_beneficiarios_${faseLabel}_${Date.now()}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('↓ Ranking exportado em CSV!');
+}
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(r => console.log('[Fiscalizaí SW] Ativo:', r.scope))
+      .catch(e => console.warn('[Fiscalizaí SW] Falhou:', e));
+  });
+}
+</script>
+</body>
+</html>
