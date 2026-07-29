@@ -3,11 +3,13 @@
 //  Cache-first para assets, network-first para API
 // ══════════════════════════════════════
 
-const CACHE_NAME = 'fiscalizai-v1';
+const CACHE_NAME = 'fiscalizai-v2';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  'index.html',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png'
 ];
 
 // ── Install: cacheia assets estáticos ──

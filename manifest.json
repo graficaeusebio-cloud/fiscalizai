@@ -2,7 +2,8 @@
   "name": "Fiscalizaí — Emendas Parlamentares",
   "short_name": "Fiscalizaí",
   "description": "Acompanhe gastos com emendas parlamentares do Brasil com transparência",
-  "start_url": "/index.html",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#06100f",
   "theme_color": "#0a1628",
@@ -28,7 +29,7 @@
       "name": "Buscar Emendas",
       "short_name": "Buscar",
       "description": "Consultar emendas parlamentares",
-      "url": "/index.html",
+      "url": ".",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
