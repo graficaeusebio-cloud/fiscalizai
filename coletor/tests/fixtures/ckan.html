@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="CKAN 2.10">
+  <title>Dados Abertos — Município Exemplo</title>
+</head>
+<body>
+  <h1>Catálogo de Dados Abertos (CKAN)</h1>
+  <ul>
+    <li><a href="/dataset/orcamento-2025">Orçamento 2025</a></li>
+    <li><a href="/dataset/orcamento-2025/resource/abc/download/orcamento.csv">orcamento.csv</a></li>
+    <li><a href="/api/3/action/package_search?q=despesas">API package_search</a></li>
+  </ul>
+  <script>fetch('/api/3/action/package_list').then(r=>r.json())</script>
+</body>
+</html>
